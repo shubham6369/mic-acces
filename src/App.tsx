@@ -107,21 +107,7 @@ const App: React.FC = () => {
       setRemoteId(room);
       setMode('listen');
       // Auto-connect after a short delay to ensure peer is fully ready
-      setTimeout(() => {
-        if (peerRef.current) {
-          const call = peerRef.current.call(room, new MediaStream());
-          call.on('stream', (remoteStream) => {
-            if (remoteAudioRef.current) {
-              remoteAudioRef.current.srcObject = remoteStream;
-              remoteAudioRef.current.play().catch(_e => {
-                setError('Please click the screen to enable audio');
-              });
-              setStatus('connected');
-              confetti({ particleCount: 100 });
-            }
-          });
-        }
-      }, 1000);
+      setTimeout(() => startListening(room), 1000);
     }
   }, [peerId]);
 
@@ -167,6 +153,37 @@ const App: React.FC = () => {
     }
   };
 
+  const startListening = (targetId?: string) => {
+    const idToCall = targetId || remoteId;
+    if (!idToCall || !peerRef.current) return;
+    
+    setStatus('connecting');
+    setError(null);
+
+    const call = peerRef.current.call(idToCall, new MediaStream());
+    
+    call.on('stream', (remoteStream) => {
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = remoteStream;
+        remoteAudioRef.current.play().catch(_e => {
+          setError('Please click the screen to enable audio');
+        });
+        setStatus('connected');
+        confetti({ particleCount: 100 });
+      }
+    });
+
+    call.on('close', () => {
+      setStatus('disconnected');
+    });
+
+    call.on('error', (err) => {
+      console.error('Call error:', err);
+      setError('Connection failed. Is the broadcaster online?');
+      setStatus('disconnected');
+    });
+  };
+
   const stop = () => {
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -179,6 +196,13 @@ const App: React.FC = () => {
     setStatus('disconnected');
     setError(null);
   };
+
+  // Sync volume and mute state
+  useEffect(() => {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
 
   const copyId = () => {
     navigator.clipboard.writeText(peerId);
@@ -348,7 +372,7 @@ const App: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <button onClick={() => setMode('idle')} className="btn-secondary">Cancel</button>
-                    <button onClick={startListening} className="btn-primary">Connect</button>
+                    <button onClick={() => startListening()} className="btn-primary">Connect</button>
                   </div>
                 </div>
               ) : (
