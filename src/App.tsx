@@ -43,11 +43,27 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
-    
     const urlMode = params.get('mode');
     const myId = (urlMode === 'broadcast' && room) ? room : null;
 
-    const peer = myId ? new Peer(myId) : new Peer();
+    const peer = myId ? new Peer(myId, {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+        ]
+      }
+    }) : new Peer({
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+        ]
+      }
+    });
+
     peerRef.current = peer;
 
     peer.on('open', (id) => {
@@ -59,6 +75,10 @@ const App: React.FC = () => {
       console.error('Peer error:', err);
       if (err.type === 'unavailable-id') {
         setError('This room is already occupied. Try a different name.');
+      } else if (err.type === 'peer-unavailable') {
+        setError('Broadcaster not found. Check the ID and try again.');
+      } else if (err.type === 'webrtc') {
+        setError('Network/WebRTC Error. Check your connection or VPN.');
       } else {
         setError(`Connection Error: ${err.type}`);
       }
@@ -418,10 +438,20 @@ const App: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-400 flex items-center gap-2"
+            className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex flex-col gap-3"
           >
-            <Activity size={14} />
-            {error}
+            <div className="flex items-center gap-2 text-xs text-rose-400 font-medium">
+              <Activity size={14} />
+              <span>{error}</span>
+            </div>
+            {error.includes('WebRTC') && (
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-[10px] uppercase tracking-widest font-bold text-rose-500 hover:text-rose-400 transition-colors text-left"
+              >
+                ↻ Refresh Page to Retry
+              </button>
+            )}
           </motion.div>
         )}
 
