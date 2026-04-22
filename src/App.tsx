@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Peer, { MediaConnection } from 'peerjs';
+import Peer from 'peerjs';
 import { 
   Mic, 
-  MicOff, 
   Volume2, 
   VolumeX, 
   Radio, 
-  Settings, 
-  Share2, 
   Copy, 
   Check, 
   Wifi, 
@@ -47,13 +44,10 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
     
-    // If room is provided, use it as the ID. 
-    // Note: PeerJS IDs must be unique. If broadcasting, we use the room ID.
-    // If listening, we generate a random ID but connect TO the room ID.
     const urlMode = params.get('mode');
-    const myId = (urlMode === 'broadcast' && room) ? room : undefined;
+    const myId = (urlMode === 'broadcast' && room) ? room : null;
 
-    const peer = new Peer(myId);
+    const peer = myId ? new Peer(myId) : new Peer();
     peerRef.current = peer;
 
     peer.on('open', (id) => {
@@ -85,8 +79,8 @@ const App: React.FC = () => {
         call.on('stream', (remoteStream) => {
           if (remoteAudioRef.current) {
             remoteAudioRef.current.srcObject = remoteStream;
-            remoteAudioRef.current.play().catch(e => {
-              console.error('Autoplay blocked:', e);
+            remoteAudioRef.current.play().catch(_e => {
+              console.error('Autoplay blocked');
               setError('Click anywhere to enable audio');
             });
             setStatus('connected');
@@ -119,7 +113,7 @@ const App: React.FC = () => {
           call.on('stream', (remoteStream) => {
             if (remoteAudioRef.current) {
               remoteAudioRef.current.srcObject = remoteStream;
-              remoteAudioRef.current.play().catch(e => {
+              remoteAudioRef.current.play().catch(_e => {
                 setError('Please click the screen to enable audio');
               });
               setStatus('connected');
@@ -173,47 +167,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Handle incoming connections in broadcast mode
-  useEffect(() => {
-    if (mode === 'broadcast' && peerRef.current && localStreamRef.current) {
-      peerRef.current.on('call', (call) => {
-        call.answer(localStreamRef.current!);
-        setStatus('connected');
-      });
-    }
-  }, [mode]);
-
-  // Start Listening
-  const startListening = () => {
-    if (!remoteId) {
-      setError('Please enter a Broadcaster ID');
-      return;
-    }
-    setMode('listen');
-    setStatus('connecting');
-    
-    if (peerRef.current) {
-      const call = peerRef.current.call(remoteId, new MediaStream()); // Send empty stream to trigger call
-      call.on('stream', (remoteStream) => {
-        if (remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = remoteStream;
-          remoteAudioRef.current.play();
-          setStatus('connected');
-          confetti({
-            particleCount: 150,
-            spread: 100,
-            origin: { y: 0.6 }
-          });
-        }
-      });
-      
-      call.on('error', (err) => {
-        setError(`Failed to connect: ${err.message}`);
-        setStatus('disconnected');
-      });
-    }
-  };
-
   const stop = () => {
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -257,8 +210,8 @@ const App: React.FC = () => {
         className="max-w-md w-full glass-card p-8 flex flex-col gap-8 relative overflow-hidden"
       >
         {/* Background glow */}
-        <div className="absolute -top-24 -right-24 w-48 height-48 bg-indigo-600/20 blur-[100px] rounded-full" />
-        <div className="absolute -bottom-24 -left-24 w-48 height-48 bg-rose-600/20 blur-[100px] rounded-full" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 blur-[100px] rounded-full" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-rose-600/20 blur-[100px] rounded-full" />
 
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
