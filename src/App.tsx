@@ -128,7 +128,9 @@ const App: React.FC = () => {
     const room = params.get('room');
 
     if (urlMode === 'broadcast') {
-      startBroadcasting();
+      // Don't auto-start mic because browsers block it without user gesture
+      // Instead, we just set the mode and wait for the user to click
+      setMode('broadcast');
     } else if (urlMode === 'listen' && room) {
       setRemoteId(room);
       setMode('listen');
@@ -340,39 +342,58 @@ const App: React.FC = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               className="flex flex-col items-center gap-8 py-4"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-rose-500/20 blur-3xl rounded-full" />
-                <div className="relative w-32 h-32 glass-card rounded-full flex items-center justify-center border-rose-500/30">
-                  <Mic size={48} className="text-rose-400" />
-                  <div className="absolute -top-2 -right-2 on-air-pulse" />
-                </div>
-              </div>
-
-              <div className="text-center space-y-2">
-                <h3 className="text-xl font-semibold">Broadcasting Live</h3>
-                <p className="text-sm text-gray-400">Share your ID to let others listen</p>
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/10 mt-2">
-                  <span className="font-mono text-indigo-300">{peerId}</span>
-                  <button onClick={copyId} className="text-gray-500 hover:text-white">
-                    {copied ? <Check size={14} /> : <Copy size={14} />}
+              {!localStreamRef.current ? (
+                <div className="flex flex-col items-center gap-6 text-center">
+                  <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center border border-rose-500/20">
+                    <Mic size={32} className="text-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-white">Ready to Broadcast</h3>
+                    <p className="text-sm text-gray-400">Click below to enable your microphone and start the live stream.</p>
+                  </div>
+                  <button onClick={startBroadcasting} className="btn-primary w-full">
+                    <Activity size={20} />
+                    Start Live Stream
                   </button>
+                  <button onClick={() => setMode('idle')} className="btn-secondary w-full">Cancel</button>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-rose-500/20 blur-3xl rounded-full" />
+                    <div className="relative w-32 h-32 glass-card rounded-full flex items-center justify-center border-rose-500/30">
+                      <Mic size={48} className="text-rose-400" />
+                      <div className="absolute -top-2 -right-2 on-air-pulse" />
+                    </div>
+                  </div>
 
-              <div className="visualizer-container w-full max-w-[200px]">
-                {bars.map((height, i) => (
-                  <motion.div 
-                    key={i}
-                    animate={{ height: `${height}px` }}
-                    className="visualizer-bar bg-rose-500/60"
-                  />
-                ))}
-              </div>
+                  <div className="text-center space-y-2">
+                    <h3 className="text-xl font-semibold text-white">Broadcasting Live</h3>
+                    <p className="text-sm text-gray-400">Your microphone is now active</p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/10 mt-2">
+                      <span className="font-mono text-indigo-300">{peerId}</span>
+                      <button onClick={copyId} className="text-gray-500 hover:text-white">
+                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    </div>
+                  </div>
 
-              <button onClick={stop} className="btn-danger w-full">
-                <Power size={20} />
-                Stop Session
-              </button>
+                  <div className="visualizer-container w-full max-w-[200px]">
+                    {bars.map((height, i) => (
+                      <motion.div 
+                        key={i}
+                        animate={{ height: `${height}px` }}
+                        className="visualizer-bar bg-rose-500/60"
+                      />
+                    ))}
+                  </div>
+
+                  <button onClick={stop} className="btn-danger w-full">
+                    <Power size={20} />
+                    Stop Session
+                  </button>
+                </>
+              )}
             </motion.div>
           )}
 
