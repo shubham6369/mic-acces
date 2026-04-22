@@ -71,8 +71,14 @@ const App: React.FC = () => {
       setStatus('disconnected');
     });
 
+    peer.on('disconnected', () => {
+      setStatus('disconnected');
+      peer.reconnect();
+    });
+
     peer.on('error', (err) => {
       console.error('Peer error:', err);
+      setStatus('disconnected');
       if (err.type === 'unavailable-id') {
         setError('This room is already occupied. Try a different name.');
       } else if (err.type === 'peer-unavailable') {
@@ -268,15 +274,15 @@ const App: React.FC = () => {
             </div>
           </div>
           <AnimatePresence>
-            {status !== 'disconnected' && (
+            {(status !== 'disconnected' || error) && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 className={`status-badge ${status === 'connected' ? 'status-online' : 'status-offline'}`}
               >
-                {status === 'connected' ? <Wifi size={14} /> : <WifiOff size={14} />}
-                {status === 'connected' ? 'Live' : 'Linking...'}
+                {status === 'connected' ? <Wifi size={14} /> : error ? <Activity size={14} /> : <WifiOff size={14} />}
+                {status === 'connected' ? 'Live' : error ? 'Error' : 'Linking...'}
               </motion.div>
             )}
           </AnimatePresence>
