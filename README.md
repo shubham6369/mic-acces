@@ -1,73 +1,39 @@
-# React + TypeScript + Vite
+# 🎙️ MicLive - 24/7 Low-Latency Audio Monitor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MicLive is a premium, serverless, peer-to-peer audio monitoring tool built with React, Vite, and PeerJS. It allows you to broadcast high-quality audio from one device and listen on another with minimal latency.
 
-Currently, two official plugins are available:
+## ✨ Features
+- **P2P Streaming**: Direct device-to-device audio using WebRTC (Privacy-first).
+- **24/7 Monitoring**: Includes Screen Wake Lock to prevent the broadcaster phone from sleeping.
+- **Automatic Links**: Join rooms instantly via URL parameters.
+- **Premium UI**: Glassmorphic design with a real-time frequency visualizer.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 How to Use (Quick Start)
 
-## React Compiler
+The easiest way to use MicLive is with **Automatic Live Links**.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. The Host (Microphone)
+Open this link on the device that will act as the microphone:
+`https://mic-acces.vercel.app/?mode=broadcast&room=YOUR_ROOM_NAME`
 
-## Expanding the ESLint configuration
+### 2. The Listener (Monitor)
+Open this link on the device you want to listen from:
+`https://mic-acces.vercel.app/?mode=listen&room=YOUR_ROOM_NAME`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+> [!IMPORTANT]
+> **Audio Policy**: Most browsers require you to click the screen once to enable audio playback for the listener.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Technology Stack
+- **Frontend**: React 19 + TypeScript + Vite
+- **Networking**: PeerJS (WebRTC)
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Hosting**: Vercel
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🔒 Security & Privacy
+- **No Server Storage**: Audio is streamed directly between devices.
+- **Encrypted**: WebRTC uses built-in encryption for all data streams.
+- **Minimal Metadata**: No login or personal data is required.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📄 License
+MIT
